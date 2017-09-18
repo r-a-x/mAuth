@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"github.com/r-a-x/mAuth/model"
 	"encoding/json"
+	"github.com/r-a-x/mAuth/request"
 )
 
 func ConnectionControllerDI()(*ConnectionController){
@@ -16,6 +17,7 @@ func ConnectionControllerDI()(*ConnectionController){
 // Remember to add the Path over here
 func (connectionController *ConnectionController) Init(){
 	connectionController.Router.HandleFunc("/isconnected",connectionController.isConnected).Methods("POST")
+	connectionController.Router.HandleFunc("/connect",connectionController.Connect).Methods("POST")
 }
 
 type ConnectionController struct {
@@ -25,12 +27,12 @@ type ConnectionController struct {
 
 
 func (ConnectionController *ConnectionController) Connect(w http.ResponseWriter, r *http.Request){
-	connection := new(model.Connection)
+	connectionRequest := new(request.CreateConnectionRequest)
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&connection); err != nil{
+	if err := decoder.Decode(&connectionRequest); err != nil{
 		panic("Error parsing the Body !!!")
 	}
-	ConnectionController.ConnectionService.Connect(connection)
+	ConnectionController.ConnectionService.Connect(connectionRequest)
 }
 
 func( connectionController * ConnectionController) isConnected(w http.ResponseWriter , r *http.Request){

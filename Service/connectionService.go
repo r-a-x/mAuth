@@ -67,6 +67,7 @@ func (service *ConnectionService) Connect(connectionRequest *request.CreateConne
 
 
 func (service *ConnectionService) connect(connectionRequest *request.CreateConnectionRequest)(*model.Connection,error){
+	// This method will just wait for the request to come
 	return nil,nil
 }
 
