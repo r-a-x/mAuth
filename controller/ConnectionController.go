@@ -7,6 +7,8 @@ import (
 	"github.com/r-a-x/mAuth/model"
 	"encoding/json"
 	"github.com/r-a-x/mAuth/request"
+	"fmt"
+	//"os"
 )
 
 func ConnectionControllerDI()(*ConnectionController){
@@ -27,12 +29,16 @@ type ConnectionController struct {
 
 
 func (ConnectionController *ConnectionController) Connect(w http.ResponseWriter, r *http.Request){
+
 	connectionRequest := new(request.CreateConnectionRequest)
 	decoder := json.NewDecoder(r.Body)
+
 	if err := decoder.Decode(&connectionRequest); err != nil{
 		panic("Error parsing the Body !!!")
 	}
-	ConnectionController.ConnectionService.Connect(connectionRequest)
+
+	ConnectionController.ConnectionService.Connect(connectionRequest,w)
+
 }
 
 func( connectionController * ConnectionController) isConnected(w http.ResponseWriter , r *http.Request){
@@ -41,7 +47,13 @@ func( connectionController * ConnectionController) isConnected(w http.ResponseWr
 	if err := decoder.Decode(&connection); err != nil{
 		panic("Error parsing the Body !!!")
 	}
-	connectionController.ConnectionService.IsConnected(connection)
+
+	connection,_ = connectionController.ConnectionService.IsConnected(connection)
+
+	bytes,_:=json.Marshal(connection)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintln(w,string(bytes))
+
 }
 
 

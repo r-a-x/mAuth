@@ -23,7 +23,7 @@ func (repo *ConnectionRepository) GetConnection(uid string)(*model.Connection,er
 
 	value,_ := repo.Db.Get(uid).Result()
 	fmt.Printf("The value of the %s\n",value)
-	var connection *model.Connection
+	var connection = new (model.Connection)
 	json.Unmarshal([]byte(value),connection)
 	return connection,nil
 

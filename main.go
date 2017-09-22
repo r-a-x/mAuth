@@ -9,6 +9,8 @@ import (
 	"github.com/go-redis/redis"
 	"fmt"
 	"os"
+	"github.com/r-a-x/mAuth/Service"
+	"github.com/r-a-x/mAuth/request"
 )
 
 
@@ -27,6 +29,14 @@ func initDB()(*redis.Client){
 	return client
 }
 
+func initBroker() (*Service.Broker){
+	broker := Service.Broker{}
+	broker.Request =make (chan request.CreateConnectionRequest)
+	broker.Start()
+	return &broker
+}
+
+
 func DI()(*mux.Router){
 
 	router := mux.NewRouter()
@@ -41,7 +51,9 @@ func DI()(*mux.Router){
 		&inject.Object{Value:initDB()},
 		&inject.Object{Value:controller.ConnectionControllerDI()},
 		&inject.Object{Value:repository.ConnectionRepositoryDI()},
+		&inject.Object{Value:initBroker()},
 	)
+
 	if err!=nil{
 		panic(err)
 	}

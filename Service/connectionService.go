@@ -5,12 +5,18 @@ import (
 	"github.com/r-a-x/mAuth/repository"
 	"github.com/r-a-x/mAuth/request"
 	"time"
+	"net/http"
+	"fmt"
+	"errors"
 )
 
 const expiryTime float64 = 100
 
+var StreamNotSupportedError = errors.New("Stream not supported")
+
 type ConnectionService struct {
 	ConnectionRepository *repository.ConnectionRepository `inject:""`
+	BrokerService  * Broker `inject:""`
 }
 
 func (service *ConnectionService) isConnectionExpired(timeStamp time.Time)(bool){
@@ -48,7 +54,7 @@ func (service *ConnectionService) isConnectionRequired(isForceConnect bool,
 
 }
 
-func (service *ConnectionService) Connect(connectionRequest *request.CreateConnectionRequest)(*model.Connection,error) {
+func (service *ConnectionService) Connect(connectionRequest *request.CreateConnectionRequest,w http.ResponseWriter)(*model.Connection,error) {
 
 	connDb,err := service.ConnectionRepository.GetConnection(connectionRequest.Uid)
 
@@ -58,7 +64,7 @@ func (service *ConnectionService) Connect(connectionRequest *request.CreateConne
 
 	if service.isConnectionRequired(connectionRequest.ForceConnect,
 		connectionRequest.ConnectTo,connDb){
-			return service.connect(connectionRequest)
+			return service.connect(connectionRequest,w)
 	}
 
 	return connDb,nil
@@ -66,8 +72,62 @@ func (service *ConnectionService) Connect(connectionRequest *request.CreateConne
 }
 
 
-func (service *ConnectionService) connect(connectionRequest *request.CreateConnectionRequest)(*model.Connection,error){
-	// This method will just wait for the request to come
+func (service *ConnectionService) connect(connectionRequest *request.CreateConnectionRequest,w http.ResponseWriter)(*model.Connection,error){
+	f, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
+		return nil,StreamNotSupportedError
+	}
+
+
+	connectionRequest.ConnectStatus = make(chan model.ConnectStatus )
+
+	service.BrokerService.Request <- *connectionRequest
+
+	notify := w.(http.CloseNotifier).CloseNotify()
+
+	go func() {
+
+		<-notify
+		// Remove this client from the map of attached clients
+		// when `EventHandler` exits.
+		//b.defunctClients <- messageChan
+
+		close(connectionRequest.ConnectStatus)
+		fmt.Println("HTTP connection just closed.")
+
+	}()
+
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+
+	for {
+
+		// Read from our messageChan.
+		msg, open := <- connectionRequest.ConnectStatus
+
+		if !open {
+			fmt.Println("The connection is closed, Please try again")
+			break
+		}
+		//
+		//// Write to the ResponseWriter, `w`.
+		fmt.Fprintf(w, "data: Message: %s\n\n", msg)
+		//
+		// Flush the response.  This is only possible if
+		// the repsonse supports streaming.
+
+		time.Sleep(200*time.Millisecond)
+		f.Flush()
+
+		close(connectionRequest.ConnectStatus)
+
+	}
+
+// Add a return statement
 	return nil,nil
 }
 
