@@ -1,14 +1,13 @@
 package controller
 
 import (
-	"github.com/r-a-x/mAuth/Service"
+	"github.com/r-a-x/mAuth/src/Service"
 	"github.com/gorilla/mux"
 	"net/http"
-	"github.com/r-a-x/mAuth/model"
+	"github.com/r-a-x/mAuth/src/model"
 	"encoding/json"
-	"github.com/r-a-x/mAuth/request"
+	"github.com/r-a-x/mAuth/src/request"
 	"fmt"
-	//"os"
 )
 
 func ConnectionControllerDI()(*ConnectionController){
@@ -42,8 +41,11 @@ func (ConnectionController *ConnectionController) Connect(w http.ResponseWriter,
 }
 
 func( connectionController * ConnectionController) isConnected(w http.ResponseWriter , r *http.Request){
+
 	connection := new(model.Connection)
+
 	decoder := json.NewDecoder(r.Body)
+
 	if err := decoder.Decode(&connection); err != nil{
 		panic("Error parsing the Body !!!")
 	}

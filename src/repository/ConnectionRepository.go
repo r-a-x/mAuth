@@ -2,7 +2,7 @@ package repository
 
 import (
 	"github.com/go-redis/redis"
-	"github.com/r-a-x/mAuth/model"
+	"github.com/r-a-x/mAuth/src/model"
 	"encoding/json"
 	"fmt"
 )

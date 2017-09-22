@@ -1,7 +1,7 @@
 package request
 
 import (
-	"github.com/r-a-x/mAuth/model"
+	"github.com/r-a-x/mAuth/src/model"
 )
 
 type CreateConnectionRequest struct {

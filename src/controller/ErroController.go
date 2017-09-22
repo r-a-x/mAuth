@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/r-a-x/mAuth/Service"
+	"github.com/r-a-x/mAuth/src/Service"
 	"github.com/gorilla/mux"
 )
 

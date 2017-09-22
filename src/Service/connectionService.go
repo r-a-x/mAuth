@@ -1,9 +1,9 @@
 package Service
 
 import (
-	"github.com/r-a-x/mAuth/model"
-	"github.com/r-a-x/mAuth/repository"
-	"github.com/r-a-x/mAuth/request"
+	"github.com/r-a-x/mAuth/src/model"
+	"github.com/r-a-x/mAuth/src/repository"
+	"github.com/r-a-x/mAuth/src/request"
 	"time"
 	"net/http"
 	"fmt"

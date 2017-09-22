@@ -2,8 +2,8 @@ package Service
 
 import (
 	"fmt"
-	"github.com/r-a-x/mAuth/request"
-	"github.com/r-a-x/mAuth/model"
+	"github.com/r-a-x/mAuth/src/request"
+	"github.com/r-a-x/mAuth/src/model"
 )
 
 type Broker struct{
