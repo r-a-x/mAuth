@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"fmt"
 	"errors"
+	"encoding/json"
 )
 
 const expiryTime float64 = 100
@@ -16,7 +17,17 @@ var StreamNotSupportedError = errors.New("Stream not supported")
 
 type ConnectionService struct {
 	ConnectionRepository *repository.ConnectionRepository `inject:""`
+	CredsRepository *repository.CredsRepository `inject:""`
 	BrokerService  * Broker `inject:""`
+}
+
+func (connectionService *ConnectionService) SetCred(cred *model.Cred) error {
+		return connectionService.CredsRepository.SetCreds(cred)
+}
+
+func ( connectionService *ConnectionService) GetCreds(creds *model.Cred) ( []model.Cred,error) {
+	return connectionService.CredsRepository.GetCreds(creds.Uid,creds.Url,creds.SubmitUrl)
+
 }
 
 func (service *ConnectionService) isConnectionExpired(timeStamp time.Time)(bool){
@@ -99,7 +110,7 @@ func (service *ConnectionService) connect(connectionRequest *request.CreateConne
 	}()
 
 
-	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
@@ -108,19 +119,19 @@ func (service *ConnectionService) connect(connectionRequest *request.CreateConne
 
 		// Read from our messageChan.
 		msg, open := <- connectionRequest.ConnectStatus
+		fmt.Println("Just read this data " , msg)
 
 		if !open {
 			fmt.Println("The connection is closed, Please try again")
 			break
 		}
-		//
-		//// Write to the ResponseWriter, `w`.
-		fmt.Fprintf(w, "data: Message: %s\n\n", msg)
-		//
-		// Flush the response.  This is only possible if
-		// the repsonse supports streaming.
 
-		time.Sleep(200*time.Millisecond)
+		msgJson,_ := json.Marshal(msg)
+		fmt.Fprintf(w, string(msgJson))
+
+
+		//time.Sleep(4000*time.Millisecond)
+
 		f.Flush()
 
 		close(connectionRequest.ConnectStatus)
@@ -137,8 +148,8 @@ func (service *ConnectionService) IsConnected(connection *model.Connection) (*mo
 
 	connDb,err:=service.ConnectionRepository.GetConnection(connection.Uid)
 
-	if connection ==nil{
-		connDb =  new(model.Connection)
+	if connDb ==nil{
+		connDb = new(model.Connection)
 	}
 
 	if err!=nil{
@@ -147,8 +158,10 @@ func (service *ConnectionService) IsConnected(connection *model.Connection) (*mo
 
 	if connection.DeviceType =="mobile"{
 		connDb.MobileAlive = true
+		connDb.LastTimeMobileSync = time.Now()
 	}else{
 		connDb.BrowserAlive = true
+		connDb.LastTimeBrowserSync = time.Now()
 	}
 
 	connDb, _ = connDb.Update(connection)

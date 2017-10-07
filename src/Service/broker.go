@@ -14,12 +14,12 @@ func connectToDevice(to request.CreateConnectionRequest){
 
 	// This method will make an actual request to the method and will return the result from there
 	fmt.Println("In the ConnectToDevice Method and waiting for the response from the ")
-	connectStatus  := model.ConnectStatus {}
-	connectStatus.Uid = to.Uid
-	connectStatus.DeviceConected = true
-	connectStatus.DeviceType = to.DeviceType
-	to.ConnectStatus <- connectStatus
-	fmt.Println("Going to send something to the method")
+		connectStatus  := model.ConnectStatus {}
+		connectStatus.Uid = to.Uid
+		connectStatus.DeviceConected = true
+		connectStatus.DeviceType = to.DeviceType
+		to.ConnectStatus <- connectStatus
+		fmt.Println("Going to send something to the method")
 
 }
 
