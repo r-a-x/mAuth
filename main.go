@@ -1,4 +1,4 @@
-package src
+package main
 
 import (
 	"fmt"
@@ -49,6 +49,7 @@ func DI() *mux.Router {
 		&inject.Object{Value: initDB()},
 		&inject.Object{Value: controller.ConnectionControllerDI()},
 		&inject.Object{Value: repository.ConnectionRepositoryDI()},
+		&inject.Object{Value:repository.CredsRepositoryDI()},
 		&inject.Object{Value: initBroker()},
 	)
 
@@ -75,7 +76,7 @@ func DI() *mux.Router {
 func main() {
 
 	router := DI()
-	err := http.ListenAndServe("localhost:8080", router)
+	err := http.ListenAndServe("localhost:19455", router)
 	if err != nil {
 		panic(err)
 	}
